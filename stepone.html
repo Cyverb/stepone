@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StepOne – One Small Step for Calm</title>
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      background: #f7f6f4;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh;
+    }
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 0;
+    }
+    .card {
+      background: #fff;
+      border-radius: 1.5rem;
+      box-shadow: 0 4px 24px 0 rgba(0,0,0,0.06), 0 1.5px 6px 0 rgba(0,0,0,0.03);
+      max-width: 400px;
+      width: 100vw;
+      margin: 0 1rem;
+      padding: 2rem 1.5rem 1.5rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      transition: box-shadow 0.2s;
+    }
+    .heading {
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: #444;
+      margin-bottom: 1.5rem;
+    }
+    .suggestion {
+      font-size: 1.15rem;
+      min-height: 2.5em;
+      margin-bottom: 2rem;
+      opacity: 0;
+      transition: opacity 0.4s;
+    }
+    .suggestion.visible {
+      opacity: 1;
+    }
+    .action-btn {
+      background: #4ade80;
+      color: #fff;
+      border: none;
+      border-radius: 999px;
+      padding: 0.75em 2.5em;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      box-shadow: 0 2px 8px 0 rgba(76,175,80,0.08);
+      transition: background 0.15s, transform 0.1s;
+      outline: none;
+      will-change: transform;
+    }
+    .action-btn:hover, .action-btn:focus {
+      background: #22c55e;
+      transform: scale(1.04);
+    }
+    .action-btn:active {
+      background: #16a34a;
+      transform: scale(0.97);
+    }
+    @media (max-width: 480px) {
+      .card {
+        padding: 1.25rem 0.75rem 1rem 0.75rem;
+      }
+      .heading {
+        font-size: 1.1rem;
+      }
+      .suggestion {
+        font-size: 1rem;
+      }
+      .action-btn {
+        font-size: 0.98rem;
+        padding: 0.7em 1.5em;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="card" role="main" aria-label="StepOne card">
+    <h1 class="heading">Not sure what to do?</h1>
+    <div id="suggestion" class="suggestion" aria-live="polite">🌱 Take a deep breath.</div>
+    <button class="action-btn" id="nextBtn" type="button" aria-label="Show another suggestion">What now?</button>
+  </main>
+  <script>
+    let suggestions = [];
+    let current = 0;
+    let suggestionOrder = [];
+    let suggestionIndex = 0;
+
+    const suggestionDiv = document.getElementById('suggestion');
+    const btn = document.getElementById('nextBtn');
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    function resetSuggestionOrder() {
+      suggestionOrder = shuffle([...Array(suggestions.length).keys()]);
+      if (suggestionOrder[0] === current && suggestionOrder.length > 1) {
+        [suggestionOrder[0], suggestionOrder[1]] = [suggestionOrder[1], suggestionOrder[0]];
+      }
+      suggestionIndex = 0;
+    }
+
+    function pickNewSuggestion() {
+      if (suggestionOrder.length === 0 || suggestionIndex >= suggestionOrder.length) {
+        resetSuggestionOrder();
+      }
+      const idx = suggestionOrder[suggestionIndex];
+      suggestionIndex++;
+      current = idx;
+      return suggestions[idx];
+    }
+
+    function showSuggestion(text) {
+      suggestionDiv.classList.remove('visible');
+      setTimeout(() => {
+        suggestionDiv.textContent = text;
+        suggestionDiv.classList.add('visible');
+      }, 250);
+    }
+
+    // Load suggestions from txt file
+    fetch('suggestions.txt')
+      .then(response => response.text())
+      .then(text => {
+        suggestions = text.split('\n').map(line => line.trim()).filter(Boolean);
+        resetSuggestionOrder();
+        showSuggestion(suggestions[0]);
+      });
+
+    btn.addEventListener('click', () => {
+      if (suggestions.length === 0) return;
+      const next = pickNewSuggestion();
+      showSuggestion(next);
+    });
+  </script>
+</body>
+</html> 
